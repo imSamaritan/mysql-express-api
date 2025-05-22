@@ -4,6 +4,8 @@ const jwt = require("jsonwebtoken")
 require("dotenv").config()
 
 const jwtKey = process.env.JWT_KEY
+const jwtExpiration = `${process.env.JWT_EXPIRES}h`
+const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS)
 
 const register = async (req, res) => {
 	const { username, email, password } = req.body
@@ -13,7 +15,7 @@ const register = async (req, res) => {
 		return res.status(404).json({ message: "User already exists" })
 	}
 
-	const hashPassword = await bcrypt.hash(password, 10)
+	const hashPassword = await bcrypt.hash(password, saltRounds)
 	const createUser = await User.create({
 		username,
 		email,
@@ -45,7 +47,7 @@ const login = async (req, res) => {
 	}
 
 	const token = jwt.sign({ id: user.id, email: user.user_email }, jwtKey, {
-		expiresIn: "1h",
+		expiresIn: jwtExpiration,
 	})
 
 	return res.status(200).json({ message: "User logged in", token })
